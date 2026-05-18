@@ -97,3 +97,4 @@ ble_server = BLEServer(nomeDoLino)
 #pietro eureka
 # Murilo EUREKA!!
 #mariana
+# Não tem mais ninguém, só o Lino mesmo. E ele é o melhor de todos, claro! :D
