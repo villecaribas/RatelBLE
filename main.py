@@ -92,3 +92,5 @@ class BLEServer:
 
 # Inicia o servidor
 ble_server = BLEServer(nomeDoLino)
+
+# Ville EUREKA!!
