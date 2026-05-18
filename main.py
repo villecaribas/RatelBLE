@@ -95,3 +95,5 @@ ble_server = BLEServer(nomeDoLino)
 
 # Ville EUREKA!!
 #pietro eureka
+
+#mariana
