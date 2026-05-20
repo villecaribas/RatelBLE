@@ -1,12 +1,13 @@
 from time import sleep, sleep_ms
 from machine import Pin
 from micropython import const
+from Buzzer_eureka import BuzzerPTK, musicas
 
 from boot import *
 from RatelServo import RatelServo
 
-servo = RatelServo(32)  # Conecte o servo ao pino 15 (ajuste conforme necessário)
-
+servo = RatelServo(32)  # Conecte o servo ao pino 32 (ajuste conforme necessário)
+buzzer = BuzzerPTK(26)  # Conecte o buzzer ao pino 26 (ajuste conforme necessário)
 # UUIDs para o serviço e característica (use UUIDs personalizados ou padrões)
 _IRQ_CONECTOU = const(1)
 _IRQ_DESCONECTOU = const(2)
@@ -104,6 +105,30 @@ class BLEServer:
                 except Exception as e:
                     print(f"(← {cmd}) comando de servo inválido: {e}")
                     self.enviar("Erro: Comando de servo inválido")
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# Murilo - Buzzer e músicas ┃
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+            elif cmd == "LISTAR":
+                nomes = list(musicas.keys())
+                resposta = "Músicas: " + ", ".join(nomes)
+                print(f"(← {cmd}) listando músicas")
+                self.enviar(resposta)
+
+            elif cmd.startswith("TOCAR "):
+                nome = cmd[6:].strip().lower()  # Pega tudo após "TOCAR "
+                if nome in [k.lower() for k in musicas.keys()]:  
+                    print(f"(← {cmd}) tocando '{nome}'")
+                    self.enviar(f"Tocando: {nome}")
+                    buzzer.play(nome.lower())
+                else:
+                    print(f"(← {cmd}) música '{nome}' não encontrada")
+                    self.enviar(f"Não encontrada: {nome}")
+
+            elif cmd == "PARAR":
+                print(f"(← {cmd}) parando buzzer")
+                buzzer.stop()
+                self.enviar("Parado")
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
             else:
                 print(f"(← {cmd}) não reconhecido)")
 
