@@ -3,6 +3,9 @@ from machine import Pin
 from micropython import const
 
 from boot import *
+from RatelServo import RatelServo
+
+servo = RatelServo(32)  # Conecte o servo ao pino 15 (ajuste conforme necessário)
 
 # UUIDs para o serviço e característica (use UUIDs personalizados ou padrões)
 _IRQ_CONECTOU = const(1)
@@ -87,6 +90,20 @@ class BLEServer:
             if cmd == "PING":
                 print(f"(← {cmd}) recebido, respondendo PONG")
                 self.enviar("PONG")
+            if cmd.startswith("servo"):
+                try:
+                    _, angle_str = cmd.split()
+                    angle = int(angle_str)
+                    if 0 <= angle <= 180:
+                        servo.set_angle(angle)
+                        print(f"(← {cmd}) recebido, servo ajustado para {angle}°")
+                        self.enviar(f"Servo ajustado para {angle}°")
+                    else:
+                        print(f"(← {cmd}) valor de ângulo inválido: {angle}")
+                        self.enviar("Erro: Ângulo deve ser entre 0 e 180")
+                except Exception as e:
+                    print(f"(← {cmd}) comando de servo inválido: {e}")
+                    self.enviar("Erro: Comando de servo inválido")
             else:
                 print(f"(← {cmd}) não reconhecido)")
 
