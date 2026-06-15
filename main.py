@@ -1,13 +1,10 @@
-import bluetooth
-from machine import Pin
-import time
 from time import sleep, sleep_ms
+from machine import Pin
 from micropython import const
-from Buzzer_eureka import BuzzerPTK, musicas
 
 from boot import *
-from RatelServo import RatelServo
 
+# UUIDs para o serviço e característica (use UUIDs personalizados ou padrões)
 _IRQ_CONECTOU = const(1)
 _IRQ_DESCONECTOU = const(2)
 _IRQ_CHEGOU_DADOS = const(3)
@@ -25,11 +22,6 @@ _LED_CHAR = (bluetooth.UUID('12345678-1234-5678-1234-56789ABCDEF1'),  # Caracter
 _LED_SERVICE = (_LED_UUID, (_LED_CHAR,),)
 
 
-
-servo = RatelServo(32)  # Conecte o servo ao pino 32 (ajuste conforme necessário)
-buzzer = BuzzerPTK(26)  # Conecte o buzzer ao pino 26 (ajuste conforme necessário)
-# UUIDs para o serviço e característica (use UUIDs personalizados ou padrões)
-
 class BLEServer:
     def __init__(self, name):
         self._ble = bluetooth.BLE()
@@ -41,14 +33,8 @@ class BLEServer:
         print("\n\n\033[1;34m"+name+"\033[0m está pronto para missão.\n")
 
     def _advertise(self, name):
-        name_bytes = bytes(name, 'utf-8')[:26]
-        adv_data = (
-            b'\x02\x01\x06' +
-            bytes((len(name_bytes) + 1, 0x09)) +
-            name_bytes
-        )
-        self._ble.config(gap_name=name)
-        self._ble.gap_advertise(100000, adv_data=adv_data)
+        name = bytes(name, 'utf-8')
+        self._ble.gap_advertise(100, adv_data=b'\x02\x01\x06' + chr(len(name) + 1) + '\x09' + name)
 
     def enviar(self, mensagem):
             """
@@ -101,57 +87,8 @@ class BLEServer:
             if cmd == "PING":
                 print(f"(← {cmd}) recebido, respondendo PONG")
                 self.enviar("PONG")
-            if cmd.startswith("servo"):
-                try:
-                    _, angle_str = cmd.split()
-                    angle = int(angle_str)
-                    if 0 <= angle <= 180:
-                        servo.set_angle(angle)
-                        print(f"(← {cmd}) recebido, servo ajustado para {angle}°")
-                        self.enviar(f"Servo ajustado para {angle}°")
-                    else:
-                        print(f"(← {cmd}) valor de ângulo inválido: {angle}")
-                        self.enviar("Erro: Ângulo deve ser entre 0 e 180")
-                except Exception as e:
-                    print(f"(← {cmd}) comando de servo inválido: {e}")
-                    self.enviar("Erro: Comando de servo inválido")
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# Murilo - Buzzer e músicas ┃
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-            elif cmd == "LISTAR":
-                nomes = list(musicas.keys())
-                resposta = "Músicas: " + ", ".join(nomes)
-                print(f"(← {cmd}) listando músicas")
-                self.enviar(resposta)
-
-            elif cmd.startswith("TOCAR "):
-                nome = cmd[6:].strip().lower()  # Pega tudo após "TOCAR "
-                if nome in [k.lower() for k in musicas.keys()]:  
-                    print(f"(← {cmd}) tocando '{nome}'")
-                    self.enviar(f"Tocando: {nome}")
-                    buzzer.play(nome.lower())
-                else:
-                    print(f"(← {cmd}) música '{nome}' não encontrada")
-                    self.enviar(f"Não encontrada: {nome}")
-
-            elif cmd == "PARAR":
-                print(f"(← {cmd}) parando buzzer")
-                buzzer.stop()
-                self.enviar("Parado")
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
             else:
                 print(f"(← {cmd}) não reconhecido)")
 
 # Inicia o servidor
 ble_server = BLEServer(nomeDoLino)
-
-# Ville EUREKA!!
-#pietro eureka
-# Murilo EUREKA!!
-#mariana
-# Não tem mais ninguém, só o Lino mesmo. E ele é o melhor de todos, claro! :D
-
-
-# Loop principal para manter o programa rodando
-while True:
-    time.sleep(1)
