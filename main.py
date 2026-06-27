@@ -1,6 +1,8 @@
 from time import sleep, sleep_ms
 from machine import Pin
 from micropython import const
+from ServoEUK import ServoEUK
+
 
 from boot import *
 
@@ -21,6 +23,7 @@ _LED_CHAR = (bluetooth.UUID('12345678-1234-5678-1234-56789ABCDEF1'),  # Caracter
              _FLAG_READ | _FLAG_WRITE | _FLAG_NOTIFY,)
 _LED_SERVICE = (_LED_UUID, (_LED_CHAR,),)
 
+servo1 = ServoEUK(26)
 
 class BLEServer:
     def __init__(self, name):
@@ -87,6 +90,16 @@ class BLEServer:
             if cmd == "PING":
                 print(f"(← {cmd}) recebido, respondendo PONG")
                 self.enviar("PONG")
+            if cmd.startswith("SERVO"):
+                try:
+                    _, angle_str = cmd.split()
+                    angle = int(angle_str)
+                    servo1.move(angle)
+                    print(f"(← {cmd}) recebido, movendo servo para {angle}°")
+                    self.enviar(f"Servo movido para {angle}°")
+                except Exception as e:
+                    print(f"Erro ao processar comando SERVO: {e}")
+                    self.enviar(f"Erro ao processar comando SERVO: {e}")
             else:
                 print(f"(← {cmd}) não reconhecido)")
 
