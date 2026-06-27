@@ -1,10 +1,10 @@
 {
-    "id_lino": "LINO_DO_VLE",
+    "id_lino": "LINO_DO_PIT",
     "token": "TOKEN_LINO",
     "proto_com": "bluetooth",
     "wifi": {
         "mode": "STA_IF",
         "ssid": "eureka",
         "password": "eureka@nos"
-    }
+    
 }
