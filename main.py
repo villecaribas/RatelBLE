@@ -91,7 +91,7 @@ class BLEServer:
             if cmd == "PING":
                 print(f"(← {cmd}) recebido, respondendo PONG")
                 self.enviar("PONG")
-            elif cmd.startswith("SERVO"):
+            elif cmd.startswith("SERVO_VAI_PARA"):
                 try:
                     _, angulo_str = cmd.split()
                     angulo = int(angulo_str)
@@ -101,7 +101,7 @@ class BLEServer:
                 except Exception as e:
                     print(f"Erro ao processar comando SERVO: {e}")
                     self.enviar(f"Erro ao processar comando SERVO: {e}")
-            elif cmd.startswith("SERVO_VEL"):
+            elif cmd.startswith("SERVO_VELOCIDADE"):
                 try:
                     _, velocidade_str = cmd.split()
                     velocidade = int(velocidade_str)
