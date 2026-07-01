@@ -92,14 +92,24 @@ class BLEServer:
                 self.enviar("PONG")
             if cmd.startswith("SERVO"):
                 try:
-                    _, angle_str = cmd.split()
-                    angle = int(angle_str)
-                    servo1.move(angle)
-                    print(f"(← {cmd}) recebido, movendo servo para {angle}°")
-                    self.enviar(f"Servo movido para {angle}°")
+                    _, angulo_str = cmd.split()
+                    angulo = int(angulo_str)
+                    servo1.mover(angulo)
+                    print(f"(← {cmd}) recebido, movendo servo para {angulo} graus")
+                    self.enviar(f"Servo movido para {angulo} graus")
                 except Exception as e:
                     print(f"Erro ao processar comando SERVO: {e}")
                     self.enviar(f"Erro ao processar comando SERVO: {e}")
+            if cmd.startswith("SERVO_VEL"):
+                try:
+                    _, velocidade_str = cmd.split()
+                    velocidade = int(velocidade_str)
+                    servo1.setVelocidade(velocidade)
+                    print(f"(← {cmd}) recebido, definindo velocidade do servo para {velocidade}")
+                    self.enviar(f"Velocidade do servo definida para {velocidade}")
+                except Exception as e:
+                    print(f"Erro ao processar comando VEL: {e}")
+                    self.enviar(f"Erro ao processar comando VEL: {e}")
             else:
                 print(f"(← {cmd}) não reconhecido)")
 

@@ -3,102 +3,120 @@ from time import sleep_ms
 
 
 class ServoEUK:
-    """
-    Classe para controle de Servo Motor (SG90, MG90S, MG996R, etc.)
-
-    Autor: Patrulha EUREKA
-    """
+    VELOCIDADE_MIN = 1
+    VELOCIDADE_MAX = 20
 
     def __init__(self,
                  pin,
                  freq=50,
                  min_us=500,
-                 max_us=2500,
-                 angle=90):
-
-        self.pin = Pin(pin, Pin.OUT)
-        self.pwm = PWM(self.pin, freq=freq)
+                 max_us=2500):
 
         self.freq = freq
         self.min_us = min_us
         self.max_us = max_us
 
-        self._angle = None
-        self.write(angle)
+        self.pwm = PWM(Pin(pin), freq=freq)
 
-    # -----------------------------------------------------
+        self.angulo = 90
+
+        # Inicia na velocidade máxima
+        self.velocidade = ServoEUK.VELOCIDADE_MAX
+
+        self.write(self.angulo)
+
+    # ----------------------------------------------------
 
     def _us_to_duty(self, us):
-        """
-        Converte microssegundos para duty de 16 bits.
-        """
+        periodo = 1000000 / self.freq
+        return int((us / periodo) * 65535)
 
-        period = 1000000 / self.freq
-        duty = int((us / period) * 65535)
-        return duty
+    # ----------------------------------------------------
 
-    # -----------------------------------------------------
+    def _angulo_to_us(self, angulo):
+        return self.min_us + (self.max_us - self.min_us) * angulo / 180
 
-    def write(self, angle):
-        """
-        Posiciona o servo no ângulo informado.
-        """
+    # ----------------------------------------------------
 
-        angle = max(0, min(180, angle))
+    def write(self, angulo):
 
-        us = self.min_us + (self.max_us - self.min_us) * angle / 180
+        angulo = max(0, min(180, angulo))
+
+        us = self._angulo_to_us(angulo)
 
         self.pwm.duty_u16(self._us_to_duty(us))
 
-        self._angle = angle
+        self.angulo = angulo
 
-    # -----------------------------------------------------
+    # ----------------------------------------------------
 
-    def read(self):
+    def setVelocidade(self, velocidade):
         """
-        Retorna o ângulo atual.
-        """
+        Define a velocidade do servo.
 
-        return self._angle
-
-    # -----------------------------------------------------
-
-    def move(self, angle, step=1, delay=15):
-        """
-        Move suavemente até o ângulo desejado.
+        1 = Muito lento
+        20 = Máxima velocidade
         """
 
-        angle = max(0, min(180, angle))
+        velocidade = max(self.VELOCIDADE_MIN,
+                         min(self.VELOCIDADE_MAX, velocidade))
 
-        if self._angle is None:
-            self.write(angle)
+        self.velocidade = velocidade
+
+    # ----------------------------------------------------
+
+    def getVelocidade(self):
+        return self.velocidade
+
+    # ----------------------------------------------------
+
+    def mover(self, destino):
+
+        destino = max(0, min(180, destino))
+
+        if destino == self.angulo:
             return
 
-        if angle > self._angle:
-            rng = range(int(self._angle), int(angle) + 1, step)
+        passo = self.velocidade
+
+        if destino > self.angulo:
+
+            while self.angulo < destino:
+
+                self.angulo += passo
+
+                if self.angulo > destino:
+                    self.angulo = destino
+
+                self.write(self.angulo)
+
+                sleep_ms(20)
+
         else:
-            rng = range(int(self._angle), int(angle) - 1, -step)
 
-        for a in rng:
-            self.write(a)
-            sleep_ms(delay)
+            while self.angulo > destino:
 
-    # -----------------------------------------------------
+                self.angulo -= passo
 
-    def off(self):
-        """
-        Desliga o PWM.
-        """
+                if self.angulo < destino:
+                    self.angulo = destino
 
-        self.pwm.deinit()
+                self.write(self.angulo)
 
-    # -----------------------------------------------------
+                sleep_ms(20)
+
+    # ----------------------------------------------------
 
     def center(self):
-        self.write(90)
+        self.mover(90)
 
     def left(self):
-        self.write(0)
+        self.mover(0)
 
     def right(self):
-        self.write(180)
+        self.mover(180)
+
+    # ----------------------------------------------------
+
+    def desligar(self):
+        self.pwm.deinit()
