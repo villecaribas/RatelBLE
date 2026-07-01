@@ -3,6 +3,7 @@ from machine import Pin
 from micropython import const
 from ServoEUK import ServoEUK
 from Buzzer_eureka import BuzzerPTK
+from Buzzer_eureka import musicas
 
 from boot import *
 
@@ -111,8 +112,43 @@ class BLEServer:
                 except Exception as e:
                     print(f"Erro ao processar comando VEL: {e}")
                     self.enviar(f"Erro ao processar comando VEL: {e}")
-            else:
-                print(f"(← {cmd}) não reconhecido)")
+            # ===== Music =====
 
+        elif cmd == "M.L":
+            resposta = ";".join(
+                f"{i}:{nome}" for i, nome in enumerate(musicas.keys())
+            )
+            self.enviar(resposta)
+
+        elif cmd.startswith("M.P."):
+            musica = cmd[4:]   # remove "M.P."
+
+            if musica.isdigit():
+                indice = int(musica)
+                nomes = list(musicas.keys())
+
+                if 0 <= indice < len(nomes):
+                    nome = nomes[indice]
+                    buzzer.play(nome)
+                    self.enviar(f"Playing:{nome}")
+                else:
+                    self.enviar("ERR:BAD_INDEX")
+
+            else:
+                musica = musica.lower()
+
+                if musica in musicas:
+                    buzzer.play(musica)
+                    self.enviar(f"Playing:{musica}")
+                else:
+                    self.enviar("ERR:BAD_NAME")
+
+        elif cmd == "M.S":
+            buzzer.stop()
+            self.enviar("Stopped")
+
+        else:
+            print(f"(← {cmd}) não reconhecido")
+            
 # Inicia o servidor
 ble_server = BLEServer(nomeDoLino)
