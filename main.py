@@ -2,7 +2,7 @@ from time import sleep, sleep_ms
 from machine import Pin
 from micropython import const
 from ServoEUK import ServoEUK
-
+from Buzzer_eureka import BuzzerPTK
 
 from boot import *
 
@@ -24,6 +24,7 @@ _LED_CHAR = (bluetooth.UUID('12345678-1234-5678-1234-56789ABCDEF1'),  # Caracter
 _LED_SERVICE = (_LED_UUID, (_LED_CHAR,),)
 
 servo1 = ServoEUK(26)
+buzzer = BuzzerPTK(32)
 
 class BLEServer:
     def __init__(self, name):
@@ -90,7 +91,7 @@ class BLEServer:
             if cmd == "PING":
                 print(f"(← {cmd}) recebido, respondendo PONG")
                 self.enviar("PONG")
-            if cmd.startswith("SERVO"):
+            elif cmd.startswith("SERVO"):
                 try:
                     _, angulo_str = cmd.split()
                     angulo = int(angulo_str)
@@ -100,7 +101,7 @@ class BLEServer:
                 except Exception as e:
                     print(f"Erro ao processar comando SERVO: {e}")
                     self.enviar(f"Erro ao processar comando SERVO: {e}")
-            if cmd.startswith("SERVO_VEL"):
+            elif cmd.startswith("SERVO_VEL"):
                 try:
                     _, velocidade_str = cmd.split()
                     velocidade = int(velocidade_str)
