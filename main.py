@@ -2,7 +2,7 @@ from time import sleep, sleep_ms
 from machine import Pin
 from micropython import const
 from ServoEUK import ServoEUK
-from Buzzer_eureka import BuzzerPTK
+from Buzzer_eureka import BuzzerPTK, musicas, version
 
 from boot import *
 
@@ -26,47 +26,7 @@ _LED_SERVICE = (_LED_UUID, (_LED_CHAR,),)
 servo1 = ServoEUK(26)
 buzzer = BuzzerPTK(32)
 
-MEGALOVANIA = (
-    "D,D,D6,P,A,8P,G#,P,G,P,F,P,D,F,G,"
-    "C,C,D6,P,A,8P,G#,P,G,P,F,P,D,F,G,"
-    "B4,B4,D6,P,A,8P,G#,P,G,P,F,P,D,F,G,"
-    "A#4,A#4,D6,P,A,8P,G#,P,G,P,F,P,D,F,G"
-)
 
-STARWARS = (
-    "32P,32F#,32F#,32F#,8B.,8F#6.,32E6,32D#6,32C#6,8B6.,16F#6.,"
-    "32E6,32D#6,32C#6,8B6.,16F#6.,32E6,32D#6,32E6,8C#6.,"
-    "32F#,32F#,32F#,8B.,8F#6.,32E6,32D#6,32C#6,8B6.,16F#6.,"
-    "32E6,32D#6,32C#6,8B6.,16F#6.,32E6,32D#6,32E6,8C#6"
-)
-
-AXELF = (
-    "16G,16G,A#.,16G,16P,16G,C6,G,F,4G,D6.,16G,16P,16G,D#6,D6,A#,G,D6,G6,"
-    "16G,16F,16P,16F,D,A#,2G,4P,"
-    "16F6,D6,C6,A#,4G,A#.,16G,16P,16G,C6,G,F,4G,D6.,16G,16P,16G,D#6,D6,"
-    "A#,G,D6,G6,16G,16F,16P,16F,D,A#,2G"
-)
-
-musicas = {
-    "megalovania": {
-        "notes": MEGALOVANIA,
-        "bpm": 120,
-        "default_dur": 16,
-        "default_oct": 5,
-    },
-    "starwars": {
-        "notes": STARWARS,
-        "bpm": 45,
-        "default_dur": 4,
-        "default_oct": 5,
-    },
-    "axelf": {
-        "notes": AXELF,
-        "bpm": 125,
-        "default_dur": 8,
-        "default_oct": 5,
-    },
-}
 
 class BLEServer:
     def __init__(self, name):
@@ -76,7 +36,8 @@ class BLEServer:
         ((self._handle,),) = self._ble.gatts_register_services((_LED_SERVICE,))
         self._connections = set()
         self._advertise(name)
-        print("\n\n\033[1;34m"+name+"\033[0m está pronto para missão.\n")
+        print("\n\n\033[1;34m"+name+"\033[0m está pronto para missão.")
+        print("\033[1;34m"+"Versão do buzzer: " + version + "\033[0m \n")
 
     def _advertise(self, name):
         name = bytes(name, 'utf-8')
@@ -153,7 +114,7 @@ class BLEServer:
                 except Exception as e:
                     print(f"Erro ao processar comando VEL: {e}")
                     self.enviar(f"Erro ao processar comando VEL: {e}")
-            # ===== Music =====
+            # ===== Music by Murilo ===== 
 
             elif cmd.upper() == "M.L":
                 resposta = ";".join(
@@ -187,6 +148,7 @@ class BLEServer:
             elif cmd.upper() == "M.S":
                 buzzer.stop()
                 self.enviar("Stopped")
+            # ===========================
 
             else:
                 print(f"(← {cmd}) não reconhecido")

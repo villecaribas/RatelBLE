@@ -49,6 +49,7 @@ musicas = {
     },
 }
 
+version = "1.0.4"
 
 class BuzzerPTK:
     DUTY = 30000
